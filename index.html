@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="docTitle">Dynamic Line Chart Generator</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      background: #f1f5f9; 
+      padding: 20px; 
+      margin: 0; 
+      color: #0f172a; 
+      position: relative;
+    }
+    .app-layout { max-width: 950px; margin: 0 auto; padding-bottom: 100px; }
+
+    .table-section, .chart-card, .calc-lines-box {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .table-header-controls { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      flex-wrap: wrap; 
+      gap: 15px; 
+      margin-bottom: 10px;
+    }
+
+    .title-inline-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .title-input { padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; width: 180px; }
+
+    .action-btns-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .btn { 
+      background: #2563eb; 
+      color: #fff; 
+      border: none; 
+      padding: 6px 12px; 
+      border-radius: 4px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      transition: background-color 0.2s ease;
+    }
+    .btn:hover { background: #1d4ed8; }
+
+    .btn.sec { background: #0d9488; }
+    .btn.sec:hover { background: #0f766e; }
+
+    .btn.add-y-btn { background: #4f46e5; padding: 4px 10px; font-size: 12px; }
+    .btn.add-y-btn:hover { background: #3730a3; }
+
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #e2e8f0; padding: 6px; text-align: center; }
+    th { background: #f8fafc; }
+
+    .series-header-content { display: flex; align-items: center; justify-content: center; gap: 4px; }
+    
+    input[type="text"], input[type="number"] { padding: 3px 4px; border: 1px solid #cbd5e1; border-radius: 4px; }
+    
+    .x-label { 
+      width: 48px !important; 
+      text-align: center; 
+      font-size: 13px; 
+    }
+    .y-val { 
+      width: 55px !important; 
+      text-align: center; 
+      font-size: 13px; 
+    }
+
+    .color-picker { width: 28px; height: 28px; border: none; vertical-align: middle; cursor: pointer; border-radius: 4px; padding: 0; }
+    .series-name { width: 80px !important; text-align: center; font-weight: bold; }
+    
+    .del-btn, .del-series-btn, .del-y-btn { 
+      background: #ef4444; 
+      color: white; 
+      border: none; 
+      border-radius: 4px; 
+      padding: 2px 5px; 
+      cursor: pointer; 
+      font-size: 11px;
+      transition: background-color 0.2s ease;
+    }
+    .del-btn:hover, .del-series-btn:hover, .del-y-btn:hover {
+      background: #b91c1c;
+    }
+
+    .checklist-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .checklist-item {
+      display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; cursor: pointer; background: #f8fafc; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px;
+      transition: background-color 0.2s ease;
+    }
+    .checklist-item:hover {
+      background: #e2e8f0;
+    }
+
+    .chart-card { 
+      background: #ffffff; 
+      padding: 25px 30px; 
+      position: relative; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .chart-top-toolbar { display: flex; justify-content: flex-start; margin-bottom: 12px; }
+
+    .chart-wrapper {
+      position: relative;
+      height: 440px;
+      display: flex;
+    }
+
+    .y-axis-labels-column {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 110px;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .y-axis-item {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      pointer-events: auto;
+      padding-right: 4px;
+    }
+
+    .y-axis-label-input {
+      width: 68px !important;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      padding: 2px 4px !important;
+      border: 1px solid transparent !important;
+      background: transparent;
+      border-radius: 4px;
+    }
+
+    .y-axis-label-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      text-align: right;
+      width: 68px;
+      display: inline-block;
+      padding-right: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .y-axis-label-input:focus, .y-axis-label-input:hover {
+      border: 1px solid #cbd5e1 !important;
+      background: #ffffff;
+    }
+
+    .chart-box {
+      flex: 1;
+      height: 100%;
+      margin-left: 115px;
+      position: relative;
+    }
+
+    #settingsBtn {
+      position: fixed !important;
+      top: 20px !important;
+      right: 20px !important;
+      background: #ffffff !important;
+      color: #334155 !important;
+      border: 1px solid #cbd5e1 !important;
+      padding: 8px 16px !important;
+      border-radius: 20px !important;
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+      z-index: 99999 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      transition: background-color 0.2s ease, border-color 0.2s ease !important;
+    }
+    #settingsBtn:hover {
+      background: #f8fafc !important;
+      border-color: #94a3b8 !important;
+    }
+
+    .floating-actions {
+      position: fixed !important;
+      bottom: 24px !important;
+      right: 24px !important;
+      display: flex !important;
+      gap: 12px !important;
+      z-index: 99999 !important;
+    }
+
+    #rewindBtn {
+      background: #64748b !important;
+      color: white !important;
+      border: none !important;
+      padding: 12px 20px !important;
+      border-radius: 30px !important;
+      font-size: 15px !important;
+      font-weight: bold !important;
+      cursor: pointer !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
+      transition: background-color 0.2s ease, transform 0.15s ease, opacity 0.2s ease !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+    }
+    #rewindBtn:hover:not(:disabled) {
+      background: #475569 !important;
+      transform: translateY(-2px) !important;
+    }
+    #rewindBtn:disabled {
+      background: #cbd5e1 !important;
+      cursor: not-allowed !important;
+      opacity: 0.6 !important;
+      box-shadow: none !important;
+    }
+
+    #finishBtn { 
+      background: #10b981 !important; 
+      color: white !important; 
+      border: none !important; 
+      padding: 12px 28px !important; 
+      border-radius: 30px !important; 
+      font-size: 16px !important; 
+      font-weight: bold !important; 
+      cursor: pointer !important; 
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2) !important;
+      transition: background-color 0.2s ease, transform 0.15s ease !important;
+    }
+    #finishBtn:hover {
+      background: #047857 !important;
+      transform: translateY(-2px) !important;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 100000;
+    }
+    .modal-card { background: white; padding: 24px; border-radius: 12px; text-align: center; width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    .export-btns { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+    .export-opt { 
+      padding: 12px; 
+      border: 1px solid #cbd5e1; 
+      background: #f8fafc; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+    }
+    .export-opt:hover { background: #cbd5e1; }
+    
+    .close-btn { 
+      background: none; 
+      border: none; 
+      color: #64748b; 
+      cursor: pointer; 
+      font-weight: bold;
+      transition: color 0.2s ease;
+    }
+    .close-btn:hover { color: #0f172a; }
+
+    .setting-item-btn {
+      width: 100%;
+      padding: 14px;
+      margin-top: 15px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1e293b;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.2s ease;
+    }
+    .setting-item-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .lang-option-box {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 10px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .lang-option-box:hover {
+      background: #f8fafc;
+    }
+
+    .lang-option-box.active-lang {
+      border: 2px solid #10b981 !important;
+      background: #f0fdf4 !important;
+      color: #065f46 !important;
+      box-shadow: 0 0 0 1px #10b981 !important;
+    }
+    
+    .active-badge {
+      font-size: 12px;
+      background: #10b981;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+
+    .settings-back-btn {
+      background: none;
+      border: none;
+      color: #2563eb;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0;
+    }
+    .settings-back-btn:hover {
+      text-decoration: underline;
+    }
+
+    .exporting .del-y-btn,
+    .exporting .chart-top-toolbar {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+<button id="settingsBtn" type="button">⚙ Settings</button>
+
+<div class="app-layout">
+  <div class="table-section">
+    <!-- Combined Header Controls: Chart Title Settings + Table Actions -->
+    <div class="table-header-controls">
+      <div class="title-inline-controls">
+        <label><span id="txtTitleTextLabel" style="font-weight: 600; font-size: 14px;">Title Text:</span> 
+          <input type="text" id="chartTitleInput" class="title-input" value="Data Table">
+        </label>
+        <label><span id="txtTitleColorLabel" style="font-weight: 600; font-size: 14px;">Title Color:</span> 
+          <input type="color" id="titleColorPicker" class="color-picker" value="#0f172a">
+        </label>
+      </div>
+
+      <div class="action-btns-group">
+        <button id="addRowBtn" class="btn" type="button">+ Add Row</button>
+        <button id="addSeriesBtn" class="btn sec" type="button">+ Add Line</button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table id="dataTable">
+        <thead>
+          <tr id="tableHeaderRow">
+            <th id="thXLabel">X Label</th>
+            <th data-series="0">
+              <div class="series-header-content">
+                <input type="color" class="color-picker" value="#2563eb" data-series="0">
+                <input type="text" class="series-name" value="Blue Series" data-series="0">
+                <button class="del-series-btn" type="button">✕</button>
+              </div>
+            </th>
+            <th data-series="1">
+              <div class="series-header-content">
+                <input type="color" class="color-picker" value="#dc2626" data-series="1">
+                <input type="text" class="series-name" value="Red Series" data-series="1">
+                <button class="del-series-btn" type="button">✕</button>
+              </div>
+            </th>
+            <th id="thDeleteRow">Delete Row</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td><input type="text" class="x-label" value="Jan"></td>
+            <td><input type="number" class="y-val" data-series="0" value="20"></td>
+            <td><input type="number" class="y-val" data-series="1" value="40"></td>
+            <td><button class="del-btn" type="button">✕</button></td>
+          </tr>
+          <tr>
+            <td><input type="text" class="x-label" value="Feb"></td>
+            <td><input type="number" class="y-val" data-series="0" value="60"></td>
+            <td><input type="number" class="y-val" data-series="1" value="80"></td>
+            <td><button class="del-btn" type="button">✕</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="calc-lines-box">
+    <h3 id="txtCentralLinesHeader" style="margin:0 0 5px 0;">Central Lines (Average Scores)</h3>
+    <small id="txtCentralLinesDesc" style="color: #64748b;">Select which line(s) to display average lines for:</small>
+    <div class="checklist-group" id="calcChecklist"></div>
+  </div>
+
+  <div class="chart-card" id="captureArea">
+    <div class="chart-top-toolbar">
+      <button id="addYBoxBtn" class="btn add-y-btn" type="button">+ Add Y-Axis Box</button>
+    </div>
+
+    <div class="chart-wrapper">
+      <div id="yAxisLabelsColumn" class="y-axis-labels-column"></div>
+      <div class="chart-box">
+        <canvas id="myChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="floating-actions">
+  <button id="rewindBtn" type="button" disabled>↺ Rewind</button>
+  <button id="finishBtn" type="button">Finish</button>
+</div>
+
+<div id="settingsModal" class="modal-overlay">
+  <div class="modal-card">
+    <div id="settingsMainView">
+      <h2 id="txtSettingsTitle" style="margin-top:0;">Settings</h2>
+      <button id="openLanguagesBtn" class="setting-item-btn" type="button">
+        <span id="txtLanguagesOption">🌐 Languages</span>
+        <span style="color: #64748b;">›</span>
+      </button>
+      <div style="margin-top: 25px;">
+        <button id="closeSettingsModalBtn" class="close-btn" type="button">Close</button>
+      </div>
+    </div>
+
+    <div id="settingsLanguagesView" style="display: none;">
+      <button id="backToSettingsBtn" class="settings-back-btn" type="button">‹ Back to Settings</button>
+      <h2 id="txtSelectLanguageTitle" style="margin-top: 5px;">Select Language</h2>
+      
+      <div style="margin-top: 15px;">
+        <div class="lang-option-box" data-lang="zh">
+          <span>繁體中文 (Traditional Chinese)</span>
+        </div>
+        <div class="lang-option-box active-lang" data-lang="en">
+          <span>English</span>
+          <span class="active-badge">Current</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <button id="closeLangModalBtn" class="close-btn" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="exportModal" class="modal-overlay">
+  <div class="modal-card">
+    <h2 id="txtExportOptionsTitle">Export Options</h2>
+    <p id="txtExportOptionsDesc">Choose how you want to save your graph:</p>
+    <div class="export-btns">
+      <button id="exportPngBtn" class="export-opt" type="button">📷 Save to Photos (PNG)</button>
+      <button id="exportPdfBtn" class="export-opt" type="button">📄 Save as PDF Document</button>
+    </div>
+    <button id="closeModalBtn" class="close-btn" type="button">Cancel</button>
+  </div>
+</div>
+
+<script>
+  let currentLang = 'en';
+
+  const i18n = {
+    en: {
+      docTitle: "Dynamic Line Chart Generator",
+      settingsBtn: "⚙ Settings",
+      titleTextLabel: "Title Text:",
+      titleColorLabel: "Title Color:",
+      defaultTitleText: "Data Table",
+      addRowBtn: "+ Add Row",
+      addSeriesBtn: "+ Add Line",
+      thXLabel: "X Label",
+      thDeleteRow: "Delete Row",
+      centralLinesHeader: "Central Lines (Average Scores)",
+      centralLinesDesc: "Select which line(s) to display average lines for:",
+      overallCentralLine: "Overall Central Line (All Lines Average)",
+      centralLinePrefix: "Central Line:",
+      addYBoxBtn: "+ Add Y-Axis Box",
+      rewindBtn: "↺ Rewind",
+      finishBtn: "Finish",
+      settingsTitle: "Settings",
+      languagesOption: "🌐 Languages",
+      closeBtn: "Close",
+      cancelBtn: "Cancel",
+      backToSettings: "‹ Back to Settings",
+      selectLanguageTitle: "Select Language",
+      currentBadge: "Current",
+      exportOptionsTitle: "Export Options",
+      exportOptionsDesc: "Choose how you want to save your graph:",
+      exportPngBtn: "📷 Save to Photos (PNG)",
+      exportPdfBtn: "📄 Save as PDF Document",
+      seriesDefaultName: "Series",
+      overallCentralLineDataset: "Overall Central Line",
+      avgSuffix: "Avg",
+      minBoxesAlert: "Keep at least 2 boxes!",
+      minSeriesAlert: "Keep at least one data line!"
+    },
+    zh: {
+      docTitle: "動態折線圖產生器",
+      settingsBtn: "⚙ 設定",
+      titleTextLabel: "標題文字：",
+      titleColorLabel: "標題顏色：",
+      defaultTitleText: "數據統計圖表",
+      addRowBtn: "+ 新增資料橫列",
+      addSeriesBtn: "+ 新增數據折線",
+      thXLabel: "X軸 標籤",
+      thDeleteRow: "刪除橫列",
+      centralLinesHeader: "中心線 (平均數值)",
+      centralLinesDesc: "選擇要顯示平均線的數據折線：",
+      overallCentralLine: "總體中心線 (所有折線平均)",
+      centralLinePrefix: "中心線：",
+      addYBoxBtn: "+ 新增 Y軸",
+      rewindBtn: "↺ 復原 (Rewind)",
+      finishBtn: "完成匯出",
+      settingsTitle: "設定",
+      languagesOption: "🌐 語言 (Languages)",
+      closeBtn: "關閉",
+      cancelBtn: "取消",
+      backToSettings: "‹ 返回設定",
+      selectLanguageTitle: "選擇語言",
+      currentBadge: "目前使用",
+      exportOptionsTitle: "匯出選項",
+      exportOptionsDesc: "請選擇您要儲存圖表的方式：",
+      exportPngBtn: "📷 儲存至相簿 (PNG 圖檔)",
+      exportPdfBtn: "📄 匯出為 PDF 文件",
+      seriesDefaultName: "數據線",
+      overallCentralLineDataset: "總體中心線",
+      avgSuffix: "平均",
+      minBoxesAlert: "請至少保留 2 個標籤框！",
+      minSeriesAlert: "請至少保留一條數據折線！"
+    }
+  };
+
+  let myChart;
+  const colorPalette = ['#2563eb', '#dc2626', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
+  const activeCentralSelections = new Set();
+  
+  let yAxisBoxesList = [
+    { numValue: 100, label: "100" },
+    { numValue: 80,  label: "80" },
+    { numValue: 60,  label: "60" },
+    { numValue: 40,  label: "40" },
+    { numValue: 20,  label: "20" },
+    { numValue: 0,   label: "0" }
+  ];
+
+  const stateHistory = [];
+  let isRestoringState = false;
+
+  function applyLanguage(lang) {
+    currentLang = lang;
+    const t = i18n[lang];
+
+    document.getElementById('docTitle').innerText = t.docTitle;
+    document.getElementById('settingsBtn').innerText = t.settingsBtn;
+    document.getElementById('txtTitleTextLabel').innerText = t.titleTextLabel;
+    document.getElementById('txtTitleColorLabel').innerText = t.titleColorLabel;
+    
+    const titleInput = document.getElementById('chartTitleInput');
+    if (titleInput.value === "Data Table" || titleInput.value === "數據統計圖表") {
+      titleInput.value = t.defaultTitleText;
+    }
+
+    document.getElementById('addRowBtn').innerText = t.addRowBtn;
+    document.getElementById('addSeriesBtn').innerText = t.addSeriesBtn;
+    document.getElementById('thXLabel').innerText = t.thXLabel;
+    document.getElementById('thDeleteRow').innerText = t.thDeleteRow;
+    document.getElementById('txtCentralLinesHeader').innerText = t.centralLinesHeader;
+    document.getElementById('txtCentralLinesDesc').innerText = t.centralLinesDesc;
+    document.getElementById('addYBoxBtn').innerText = t.addYBoxBtn;
+    document.getElementById('rewindBtn').innerHTML = t.rewindBtn;
+    document.getElementById('finishBtn').innerText = t.finishBtn;
+
+    document.getElementById('txtSettingsTitle').innerText = t.settingsTitle;
+    document.getElementById('txtLanguagesOption').innerText = t.languagesOption;
+    document.getElementById('closeSettingsModalBtn').innerText = t.closeBtn;
+    document.getElementById('closeLangModalBtn').innerText = t.closeBtn;
+    document.getElementById('backToSettingsBtn').innerText = t.backToSettings;
+    document.getElementById('txtSelectLanguageTitle').innerText = t.selectLanguageTitle;
+
+    document.getElementById('txtExportOptionsTitle').innerText = t.exportOptionsTitle;
+    document.getElementById('txtExportOptionsDesc').innerText = t.exportOptionsDesc;
+    document.getElementById('exportPngBtn').innerText = t.exportPngBtn;
+    document.getElementById('exportPdfBtn').innerText = t.exportPdfBtn;
+    document.getElementById('closeModalBtn').innerText = t.cancelBtn;
+
+    document.querySelectorAll('.lang-option-box').forEach(b => {
+      const badge = b.querySelector('.active-badge');
+      if (badge) badge.innerText = t.currentBadge;
+    });
+
+    updateChart();
+  }
+
+  function captureCurrentState() {
+    if (isRestoringState) return;
+
+    const thEls = Array.from(document.querySelectorAll('th[data-series]'));
+    const seriesData = thEls.map((th, sIdx) => ({
+      color: th.querySelector('.color-picker').value,
+      name: th.querySelector('.series-name').value
+    }));
+
+    const rows = Array.from(document.querySelectorAll('#tableBody tr')).map(row => {
+      const xVal = row.querySelector('.x-label').value;
+      const yVals = Array.from(row.querySelectorAll('.y-val')).map(input => input.value);
+      return { xVal, yVals };
+    });
+
+    const state = {
+      lang: currentLang,
+      titleText: document.getElementById('chartTitleInput').value,
+      titleColor: document.getElementById('titleColorPicker').value,
+      seriesData,
+      rows,
+      yAxisBoxesList: JSON.parse(JSON.stringify(yAxisBoxesList)),
+      activeCentralSelections: Array.from(activeCentralSelections)
+    };
+
+    stateHistory.push(JSON.stringify(state));
+    if (stateHistory.length > 50) stateHistory.shift();
+    updateRewindButtonState();
+  }
+
+  function updateRewindButtonState() {
+    const rewindBtn = document.getElementById('rewindBtn');
+    rewindBtn.disabled = stateHistory.length <= 1;
+  }
+
+  function rewindState() {
+    if (stateHistory.length <= 1) return;
+
+    stateHistory.pop();
+    const prevState = JSON.parse(stateHistory[stateHistory.length - 1]);
+
+    isRestoringState = true;
+
+    if (prevState.lang && prevState.lang !== currentLang) {
+      applyLanguage(prevState.lang);
+      document.querySelectorAll('.lang-option-box').forEach(b => {
+        b.classList.remove('active-lang');
+        const badge = b.querySelector('.active-badge');
+        if (badge) badge.remove();
+        if (b.getAttribute('data-lang') === prevState.lang) {
+          b.classList.add('active-lang');
+          const newBadge = document.createElement('span');
+          newBadge.className = 'active-badge';
+          newBadge.innerText = i18n[prevState.lang].currentBadge;
+          b.appendChild(newBadge);
+        }
+      });
+    }
+
+    document.getElementById('chartTitleInput').value = prevState.titleText;
+    document.getElementById('titleColorPicker').value = prevState.titleColor;
+
+    yAxisBoxesList = JSON.parse(JSON.stringify(prevState.yAxisBoxesList));
+
+    activeCentralSelections.clear();
+    prevState.activeCentralSelections.forEach(item => activeCentralSelections.add(item));
+
+    const headerRow = document.getElementById('tableHeaderRow');
+    const existingSeriesThs = document.querySelectorAll('th[data-series]');
+    existingSeriesThs.forEach(th => th.remove());
+
+    const deleteRowTh = headerRow.children[headerRow.children.length - 1];
+
+    prevState.seriesData.forEach((s, sIdx) => {
+      const th = document.createElement('th');
+      th.setAttribute('data-series', sIdx);
+      th.innerHTML = `
+        <div class="series-header-content">
+          <input type="color" class="color-picker" value="${s.color}" data-series="${sIdx}">
+          <input type="text" class="series-name" value="${s.name}" data-series="${sIdx}">
+          <button class="del-series-btn" type="button">✕</button>
+        </div>
+      `;
+      headerRow.insertBefore(th, deleteRowTh);
+    });
+
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    prevState.rows.forEach(rData => {
+      const tr = document.createElement('tr');
+      let html = `<td><input type="text" class="x-label" value="${rData.xVal}"></td>`;
+      rData.yVals.forEach((yVal, sIdx) => {
+        html += `<td><input type="number" class="y-val" data-series="${sIdx}" value="${yVal}"></td>`;
+      });
+      html += `<td><button class="del-btn" type="button">✕</button></td>`;
+      tr.innerHTML = html;
+      tbody.appendChild(tr);
+    });
+
+    updateChart();
+    isRestoringState = false;
+    updateRewindButtonState();
+  }
+
+  function positionYAxisBoxes() {
+    if (!myChart) return;
+
+    const yScale = myChart.scales.y;
+    const container = document.getElementById('yAxisLabelsColumn');
+    container.innerHTML = '';
+
+    yAxisBoxesList.sort((a, b) => b.numValue - a.numValue);
+
+    yAxisBoxesList.forEach((item, index) => {
+      const pixelY = yScale.getPixelForValue(item.numValue);
+      if (pixelY < yScale.top - 10 || pixelY > yScale.bottom + 10) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'y-axis-item';
+      wrapper.style.top = `${pixelY}px`;
+
+      let topBound = yScale.top;
+      let bottomBound = yScale.bottom;
+
+      if (index > 0) {
+        topBound = (pixelY + yScale.getPixelForValue(yAxisBoxesList[index - 1].numValue)) / 2;
+      }
+      if (index < yAxisBoxesList.length - 1) {
+        bottomBound = (pixelY + yScale.getPixelForValue(yAxisBoxesList[index + 1].numValue)) / 2;
+      }
+
+      const allocatedHeight = bottomBound - topBound;
+      wrapper.style.height = `${Math.max(26, allocatedHeight - 4)}px`;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'y-axis-label-input';
+      input.value = item.label;
+
+      input.addEventListener('input', (e) => {
+        item.label = e.target.value;
+        const parsed = parseFloat(e.target.value);
+        if (!isNaN(parsed)) {
+          item.numValue = parsed;
+        }
+        updateChartScaleAndRender();
+        captureCurrentState();
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'del-y-btn';
+      delBtn.innerText = '✕';
+      delBtn.onclick = () => {
+        if (yAxisBoxesList.length <= 2) return alert(i18n[currentLang].minBoxesAlert);
+        yAxisBoxesList.splice(index, 1);
+        updateChartScaleAndRender();
+        captureCurrentState();
+      };
+
+      wrapper.appendChild(input);
+      wrapper.appendChild(delBtn);
+      container.appendChild(wrapper);
+    });
+  }
+
+  function renderChecklistOptions(userDatasets) {
+    const container = document.getElementById('calcChecklist');
+    const t = i18n[currentLang];
+    
+    container.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+      if (chk.checked) activeCentralSelections.add(chk.value);
+      else activeCentralSelections.delete(chk.value);
+    });
+
+    container.innerHTML = '';
+
+    const overallChecked = activeCentralSelections.has('overall') ? 'checked' : '';
+    const overallItem = document.createElement('label');
+    overallItem.className = 'checklist-item';
+    overallItem.innerHTML = `
+      <input type="checkbox" value="overall" ${overallChecked}>
+      ${t.overallCentralLine}
+    `;
+    container.appendChild(overallItem);
+
+    userDatasets.forEach((ds, idx) => {
+      const valKey = `series_${idx}`;
+      const isChecked = activeCentralSelections.has(valKey) ? 'checked' : '';
+      
+      const item = document.createElement('label');
+      item.className = 'checklist-item';
+      item.innerHTML = `
+        <input type="checkbox" value="${valKey}" ${isChecked}>
+        ${t.centralLinePrefix} ${ds.label}
+      `;
+      container.appendChild(item);
+    });
+  }
+
+  function initChart() {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    
+    const dynamicAlignPlugin = {
+      id: 'dynamicAlign',
+      afterLayout: () => {
+        setTimeout(positionYAxisBoxes, 0);
+      }
+    };
+
+    myChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels: [], datasets: [] },
+      plugins: [dynamicAlignPlugin],
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'top' },
+          title: { display: true, position: 'bottom', text: i18n[currentLang].defaultTitleText, font: { size: 16 }, padding: { top: 15, bottom: 5 } }
+        },
+        scales: {
+          y: {
+            grid: { color: '#cbd5e1' },
+            ticks: { display: false }
+          },
+          x: {
+            ticks: { font: { size: 12 } }
+          }
+        }
+      }
+    });
+    updateChart();
+    captureCurrentState();
+  }
+
+  function updateChartScaleAndRender() {
+    if (!myChart) return;
+    yAxisBoxesList.sort((a, b) => b.numValue - a.numValue);
+
+    const numVals = yAxisBoxesList.map(item => item.numValue);
+    myChart.options.scales.y.max = Math.max(...numVals);
+    myChart.options.scales.y.min = Math.min(...numVals);
+    
+    myChart.options.scales.y.afterBuildTicks = (axis) => {
+      axis.ticks = numVals.map(v => ({ value: v }));
+    };
+
+    myChart.update();
+  }
+
+  function updateChart() {
+    if (!myChart) return;
+    const t = i18n[currentLang];
+
+    const titleText = document.getElementById('chartTitleInput').value || '';
+    const titleColor = document.getElementById('titleColorPicker').value;
+    
+    myChart.options.plugins.title.text = titleText;
+    myChart.options.plugins.title.color = titleColor;
+
+    const rowEls = Array.from(document.querySelectorAll('#tableBody tr'));
+    const xLabels = rowEls.map(r => r.querySelector('.x-label').value || '');
+
+    const thEls = Array.from(document.querySelectorAll('th[data-series]'));
+    const userDatasets = thEls.map((th, sIdx) => {
+      const label = th.querySelector('.series-name').value || `${t.seriesDefaultName} ${sIdx + 1}`;
+      const color = th.querySelector('.color-picker').value;
+      const data = rowEls.map(r => Number(r.querySelectorAll('.y-val')[sIdx]?.value) || 0);
+
+      return {
+        label, data, borderColor: color, backgroundColor: color, borderWidth: 2.5
+      };
+    });
+
+    renderChecklistOptions(userDatasets);
+
+    const calculatedDatasets = [];
+
+    if (activeCentralSelections.has('overall') && userDatasets.length > 0) {
+      const overallAvg = xLabels.map((_, rowIndex) => {
+        let sum = 0;
+        userDatasets.forEach(ds => { sum += ds.data[rowIndex] || 0; });
+        return Number((sum / userDatasets.length).toFixed(2));
+      });
+
+      calculatedDatasets.push({
+        label: t.overallCentralLineDataset,
+        data: overallAvg,
+        borderColor: '#334155',
+        backgroundColor: '#334155',
+        borderWidth: 2.5,
+        borderDash: [6, 4],
+        pointRadius: 3
+      });
+    }
+
+    userDatasets.forEach((ds, idx) => {
+      if (activeCentralSelections.has(`series_${idx}`)) {
+        const sum = ds.data.reduce((acc, curr) => acc + curr, 0);
+        const avg = ds.data.length > 0 ? Number((sum / ds.data.length).toFixed(2)) : 0;
+        const avgData = new Array(xLabels.length).fill(avg);
+
+        calculatedDatasets.push({
+          label: `${ds.label} ${t.avgSuffix} (${avg})`,
+          data: avgData,
+          borderColor: ds.borderColor,
+          backgroundColor: ds.backgroundColor,
+          borderWidth: 2,
+          borderDash: [4, 4],
+          pointRadius: 0
+        });
+      }
+    });
+
+    myChart.data.labels = xLabels;
+    myChart.data.datasets = [...userDatasets, ...calculatedDatasets];
+
+    updateChartScaleAndRender();
+  }
+
+  document.getElementById('addRowBtn').onclick = () => {
+    const tbody = document.getElementById('tableBody');
+    const tr = document.createElement('tr');
+    const sCount = document.querySelectorAll('th[data-series]').length;
+
+    let html = `<td><input type="text" class="x-label" value="New"></td>`;
+    for (let i = 0; i < sCount; i++) {
+      html += `<td><input type="number" class="y-val" data-series="${i}" value="0"></td>`;
+    }
+    html += `<td><button class="del-btn" type="button">✕</button></td>`;
+    tr.innerHTML = html;
+    tbody.appendChild(tr);
+    updateChart();
+    captureCurrentState();
+  };
+
+  document.getElementById('addSeriesBtn').onclick = () => {
+    const t = i18n[currentLang];
+    const sCount = document.querySelectorAll('th[data-series]').length;
+    const col = colorPalette[sCount % colorPalette.length];
+
+    const headerRow = document.getElementById('tableHeaderRow');
+    const th = document.createElement('th');
+    th.setAttribute('data-series', sCount);
+    th.innerHTML = `
+      <div class="series-header-content">
+        <input type="color" class="color-picker" value="${col}" data-series="${sCount}">
+        <input type="text" class="series-name" value="${t.seriesDefaultName} ${sCount + 1}" data-series="${sCount}">
+        <button class="del-series-btn" type="button">✕</button>
+      </div>
+    `;
+    headerRow.insertBefore(th, headerRow.children[headerRow.children.length - 1]);
+
+    document.querySelectorAll('#tableBody tr').forEach(row => {
+      const td = document.createElement('td');
+      td.innerHTML = `<input type="number" class="y-val" data-series="${sCount}" value="0">`;
+      row.insertBefore(td, row.children[row.children.length - 1]);
+    });
+
+    updateChart();
+    captureCurrentState();
+  };
+
+  document.getElementById('dataTable').onclick = (e) => {
+    if (e.target.classList.contains('del-btn')) {
+      e.target.closest('tr').remove();
+      updateChart();
+      captureCurrentState();
+    }
+    
+    if (e.target.classList.contains('del-series-btn')) {
+      if (document.querySelectorAll('th[data-series]').length <= 1) {
+        return alert(i18n[currentLang].minSeriesAlert);
+      }
+      const th = e.target.closest('th');
+      const sIdx = Array.from(th.parentNode.children).indexOf(th) - 1;
+      th.remove();
+      document.querySelectorAll('#tableBody tr').forEach(row => {
+        row.children[sIdx + 1]?.remove();
+      });
+      updateChart();
+      captureCurrentState();
+    }
+  };
+
+  document.getElementById('calcChecklist').addEventListener('change', (e) => {
+    if (e.target.matches('input[type="checkbox"]')) {
+      if (e.target.checked) activeCentralSelections.add(e.target.value);
+      else activeCentralSelections.delete(e.target.value);
+      updateChart();
+      captureCurrentState();
+    }
+  });
+
+  document.getElementById('addYBoxBtn').onclick = () => {
+    const numVals = yAxisBoxesList.map(item => item.numValue);
+    const nextVal = numVals.length ? Math.max(...numVals) + 20 : 100;
+    yAxisBoxesList.push({ numValue: nextVal, label: String(nextVal) });
+    updateChartScaleAndRender();
+    captureCurrentState();
+  };
+
+  document.getElementById('rewindBtn').onclick = rewindState;
+
+  const exportModal = document.getElementById('exportModal');
+  const settingsModal = document.getElementById('settingsModal');
+  const settingsMainView = document.getElementById('settingsMainView');
+  const settingsLanguagesView = document.getElementById('settingsLanguagesView');
+
+  document.getElementById('settingsBtn').onclick = () => {
+    settingsMainView.style.display = 'block';
+    settingsLanguagesView.style.display = 'none';
+    settingsModal.style.display = 'flex';
+  };
+  document.getElementById('closeSettingsModalBtn').onclick = () => settingsModal.style.display = 'none';
+  document.getElementById('closeLangModalBtn').onclick = () => settingsModal.style.display = 'none';
+
+  document.getElementById('openLanguagesBtn').onclick = () => {
+    settingsMainView.style.display = 'none';
+    settingsLanguagesView.style.display = 'block';
+  };
+  document.getElementById('backToSettingsBtn').onclick = () => {
+    settingsLanguagesView.style.display = 'none';
+    settingsMainView.style.display = 'block';
+  };
+
+  document.querySelectorAll('.lang-option-box').forEach(box => {
+    box.onclick = () => {
+      const selectedLang = box.getAttribute('data-lang');
+
+      document.querySelectorAll('.lang-option-box').forEach(b => {
+        b.classList.remove('active-lang');
+        const badge = b.querySelector('.active-badge');
+        if (badge) badge.remove();
+      });
+
+      box.classList.add('active-lang');
+      const badge = document.createElement('span');
+      badge.className = 'active-badge';
+      badge.innerText = i18n[selectedLang].currentBadge;
+      box.appendChild(badge);
+
+      applyLanguage(selectedLang);
+      captureCurrentState();
+    };
+  });
+
+  document.getElementById('finishBtn').onclick = () => exportModal.style.display = 'flex';
+  document.getElementById('closeModalBtn').onclick = () => exportModal.style.display = 'none';
+
+  function captureCleanChart(callback) {
+    const captureArea = document.getElementById('captureArea');
+    captureArea.classList.add('exporting');
+
+    const inputs = captureArea.querySelectorAll('.y-axis-label-input');
+    const replacedElements = [];
+
+    inputs.forEach(input => {
+      const span = document.createElement('span');
+      span.className = 'y-axis-label-text';
+      span.innerText = input.value;
+      input.style.display = 'none';
+      input.parentNode.insertBefore(span, input);
+      replacedElements.push({ input, span });
+    });
+
+    html2canvas(captureArea, { scale: 3, useCORS: true }).then(canvas => {
+      captureArea.classList.remove('exporting');
+      
+      replacedElements.forEach(({ input, span }) => {
+        input.style.display = '';
+        span.remove();
+      });
+
+      callback(canvas);
+    });
+  }
+
+  document.getElementById('exportPngBtn').onclick = () => {
+    captureCleanChart(canvas => {
+      const link = document.createElement('a');
+      link.download = 'chart.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      exportModal.style.display = 'none';
+    });
+  };
+
+  document.getElementById('exportPdfBtn').onclick = () => {
+    captureCleanChart(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      
+      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const margin = 15;
+      const printWidth = pdfWidth - (margin * 2);
+      const printHeight = (canvas.height * printWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', margin, margin, printWidth, Math.min(printHeight, pdfHeight - (margin * 2)));
+      pdf.save('chart.pdf');
+      exportModal.style.display = 'none';
+    });
+  };
+
+  document.addEventListener('input', (e) => {
+    if (e.target.matches('.x-label, .y-val, .series-name, .color-picker, #chartTitleInput, #titleColorPicker')) {
+      updateChart();
+      captureCurrentState();
+    }
+  });
+
+  window.addEventListener('DOMContentLoaded', () => {
+    initChart();
+    applyLanguage('en');
+  });
+  window.addEventListener('resize', positionYAxisBoxes);
+</script>
+
+</body>
+</html>
