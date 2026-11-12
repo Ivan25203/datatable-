@@ -19,6 +19,21 @@
       color: #0f172a; 
       position: relative;
     }
+
+    /* Subtle wider character spacing when Traditional Chinese is active */
+    html[lang="zh"] body,
+    html[lang="zh"] button,
+    html[lang="zh"] input,
+    html[lang="zh"] th,
+    html[lang="zh"] label,
+    html[lang="zh"] h2,
+    html[lang="zh"] h3,
+    html[lang="zh"] p,
+    html[lang="zh"] small,
+    html[lang="zh"] span {
+      letter-spacing: 0.06em;
+    }
+
     .app-layout { max-width: 950px; margin: 0 auto; padding-bottom: 100px; }
 
     .table-section, .chart-card, .calc-lines-box {
@@ -45,7 +60,7 @@
       flex-wrap: wrap;
     }
 
-    .title-input { padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; width: 180px; }
+    .title-input { padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; width: 185px; }
 
     .action-btns-group {
       display: flex;
@@ -81,7 +96,7 @@
     input[type="text"], input[type="number"] { padding: 3px 4px; border: 1px solid #cbd5e1; border-radius: 4px; }
     
     .x-label { 
-      width: 48px !important; 
+      width: 65px !important; 
       text-align: center; 
       font-size: 13px; 
     }
@@ -92,7 +107,7 @@
     }
 
     .color-picker { width: 28px; height: 28px; border: none; vertical-align: middle; cursor: pointer; border-radius: 4px; padding: 0; }
-    .series-name { width: 80px !important; text-align: center; font-weight: bold; }
+    .series-name { width: 102px !important; text-align: center; font-weight: bold; }
     
     .del-btn, .del-series-btn, .del-y-btn { 
       background: #ef4444; 
@@ -276,7 +291,7 @@
       align-items: center;
       z-index: 100000;
     }
-    .modal-card { background: white; padding: 24px; border-radius: 12px; text-align: center; width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    .modal-card { background: white; padding: 24px; border-radius: 12px; text-align: center; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
     .export-btns { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
     .export-opt { 
       padding: 12px; 
@@ -384,7 +399,6 @@
 
 <div class="app-layout">
   <div class="table-section">
-    <!-- Combined Header Controls: Chart Title Settings + Table Actions -->
     <div class="table-header-controls">
       <div class="title-inline-controls">
         <label><span id="txtTitleTextLabel" style="font-weight: 600; font-size: 14px;">Title Text:</span> 
@@ -405,7 +419,7 @@
       <table id="dataTable">
         <thead>
           <tr id="tableHeaderRow">
-            <th id="thXLabel">X Label</th>
+            <th id="thXLabel">Horizontal</th>
             <th data-series="0">
               <div class="series-header-content">
                 <input type="color" class="color-picker" value="#2563eb" data-series="0">
@@ -449,7 +463,7 @@
 
   <div class="chart-card" id="captureArea">
     <div class="chart-top-toolbar">
-      <button id="addYBoxBtn" class="btn add-y-btn" type="button">+ Add Y-Axis Box</button>
+      <button id="addYBoxBtn" class="btn add-y-btn" type="button">+ Add Vertical</button>
     </div>
 
     <div class="chart-wrapper">
@@ -484,12 +498,18 @@
       <h2 id="txtSelectLanguageTitle" style="margin-top: 5px;">Select Language</h2>
       
       <div style="margin-top: 15px;">
-        <div class="lang-option-box" data-lang="zh">
-          <span>繁體中文 (Traditional Chinese)</span>
-        </div>
         <div class="lang-option-box active-lang" data-lang="en">
           <span>English</span>
           <span class="active-badge">Current</span>
+        </div>
+        <div class="lang-option-box" data-lang="zh">
+          <span>繁體中文 (Traditional Chinese)</span>
+        </div>
+        <div class="lang-option-box" data-lang="es">
+          <span>Español (Spanish)</span>
+        </div>
+        <div class="lang-option-box" data-lang="fr">
+          <span>Français (French)</span>
         </div>
       </div>
 
@@ -522,15 +542,17 @@
       titleTextLabel: "Title Text:",
       titleColorLabel: "Title Color:",
       defaultTitleText: "Data Table",
+      blueSeriesDefault: "Blue Series",
+      redSeriesDefault: "Red Series",
       addRowBtn: "+ Add Row",
       addSeriesBtn: "+ Add Line",
-      thXLabel: "X Label",
+      thXLabel: "Horizontal",
       thDeleteRow: "Delete Row",
       centralLinesHeader: "Central Lines (Average Scores)",
       centralLinesDesc: "Select which line(s) to display average lines for:",
       overallCentralLine: "Overall Central Line (All Lines Average)",
       centralLinePrefix: "Central Line:",
-      addYBoxBtn: "+ Add Y-Axis Box",
+      addYBoxBtn: "+ Add Vertical",
       rewindBtn: "↺ Rewind",
       finishBtn: "Finish",
       settingsTitle: "Settings",
@@ -556,15 +578,17 @@
       titleTextLabel: "標題文字：",
       titleColorLabel: "標題顏色：",
       defaultTitleText: "數據統計圖表",
-      addRowBtn: "+ 新增資料橫列",
-      addSeriesBtn: "+ 新增數據折線",
-      thXLabel: "X軸 標籤",
+      blueSeriesDefault: "藍色數據線",
+      redSeriesDefault: "紅色數據線",
+      addRowBtn: "+ 增加橫排",
+      addSeriesBtn: "+ 增加新線條",
+      thXLabel: "橫排",
       thDeleteRow: "刪除橫列",
-      centralLinesHeader: "中心線 (平均數值)",
+      centralLinesHeader: "平均線 (平均數值)",
       centralLinesDesc: "選擇要顯示平均線的數據折線：",
-      overallCentralLine: "總體中心線 (所有折線平均)",
-      centralLinePrefix: "中心線：",
-      addYBoxBtn: "+ 新增 Y軸",
+      overallCentralLine: "總體平均線 (所有折線平均)",
+      centralLinePrefix: "平均線：",
+      addYBoxBtn: "+ 新增直排",
       rewindBtn: "↺ 復原 (Rewind)",
       finishBtn: "完成匯出",
       settingsTitle: "設定",
@@ -579,10 +603,82 @@
       exportPngBtn: "📷 儲存至相簿 (PNG 圖檔)",
       exportPdfBtn: "📄 匯出為 PDF 文件",
       seriesDefaultName: "數據線",
-      overallCentralLineDataset: "總體中心線",
+      overallCentralLineDataset: "總體平均線",
       avgSuffix: "平均",
       minBoxesAlert: "請至少保留 2 個標籤框！",
       minSeriesAlert: "請至少保留一條數據折線！"
+    },
+    es: {
+      docTitle: "Generador Dinámico de Gráficos de Líneas",
+      settingsBtn: "⚙ Ajustes",
+      titleTextLabel: "Texto del título:",
+      titleColorLabel: "Color del título:",
+      defaultTitleText: "Tabla de Datos",
+      blueSeriesDefault: "Serie Azul",
+      redSeriesDefault: "Serie Roja",
+      addRowBtn: "+ Añadir fila",
+      addSeriesBtn: "+ Añadir línea",
+      thXLabel: "Horizontal",
+      thDeleteRow: "Eliminar fila",
+      centralLinesHeader: "Líneas Centrales (Promedios)",
+      centralLinesDesc: "Seleccione las líneas para mostrar su promedio:",
+      overallCentralLine: "Línea Central General (Promedio de todas)",
+      centralLinePrefix: "Línea Central:",
+      addYBoxBtn: "+ Añadir vertical",
+      rewindBtn: "↺ Deshacer",
+      finishBtn: "Finalizar",
+      settingsTitle: "Ajustes",
+      languagesOption: "🌐 Idiomas",
+      closeBtn: "Cerrar",
+      cancelBtn: "Cancelar",
+      backToSettings: "‹ Volver a Ajustes",
+      selectLanguageTitle: "Seleccionar idioma",
+      currentBadge: "Actual",
+      exportOptionsTitle: "Opciones de exportación",
+      exportOptionsDesc: "Elija cómo desea guardar su gráfico:",
+      exportPngBtn: "📷 Guardar en Fotos (PNG)",
+      exportPdfBtn: "📄 Guardar como PDF",
+      seriesDefaultName: "Serie",
+      overallCentralLineDataset: "Línea Central General",
+      avgSuffix: "Prom",
+      minBoxesAlert: "¡Mantenga al menos 2 etiquetas!",
+      minSeriesAlert: "¡Mantenga al menos una línea de datos!"
+    },
+    fr: {
+      docTitle: "Générateur Dynamique de Graphiques en Courbes",
+      settingsBtn: "⚙ Paramètres",
+      titleTextLabel: "Texte du titre :",
+      titleColorLabel: "Couleur du titre :",
+      defaultTitleText: "Tableau de Données",
+      blueSeriesDefault: "Série Bleue",
+      redSeriesDefault: "Série Rouge",
+      addRowBtn: "+ Ajouter une ligne",
+      addSeriesBtn: "+ Ajouter une courbe",
+      thXLabel: "Horizontal",
+      thDeleteRow: "Supprimer",
+      centralLinesHeader: "Lignes Centrales (Moyennes)",
+      centralLinesDesc: "Sélectionnez les courbes pour afficher les moyennes :",
+      overallCentralLine: "Ligne Centrale Globale (Moyenne générale)",
+      centralLinePrefix: "Ligne Centrale :",
+      addYBoxBtn: "+ Ajouter vertical",
+      rewindBtn: "↺ Annuler",
+      finishBtn: "Terminer",
+      settingsTitle: "Paramètres",
+      languagesOption: "🌐 Langues",
+      closeBtn: "Fermer",
+      cancelBtn: "Annuler",
+      backToSettings: "‹ Retour aux paramètres",
+      selectLanguageTitle: "Choisir la langue",
+      currentBadge: "Actuel",
+      exportOptionsTitle: "Options d'exportation",
+      exportOptionsDesc: "Choisissez comment enregistrer votre graphique :",
+      exportPngBtn: "📷 Enregistrer en image (PNG)",
+      exportPdfBtn: "📄 Enregistrer en document PDF",
+      seriesDefaultName: "Série",
+      overallCentralLineDataset: "Ligne Centrale Globale",
+      avgSuffix: "Moy",
+      minBoxesAlert: "Conservez au moins 2 étiquettes !",
+      minSeriesAlert: "Conservez au moins une courbe de données !"
     }
   };
 
@@ -602,19 +698,43 @@
   const stateHistory = [];
   let isRestoringState = false;
 
+  const defaultTitles = Object.values(i18n).map(langObj => langObj.defaultTitleText);
+  const defaultBlueNames = Object.values(i18n).map(langObj => langObj.blueSeriesDefault);
+  const defaultRedNames = Object.values(i18n).map(langObj => langObj.redSeriesDefault);
+  const defaultSeriesPrefixes = Object.values(i18n).map(langObj => langObj.seriesDefaultName);
+
   function applyLanguage(lang) {
     currentLang = lang;
     const t = i18n[lang];
 
+    document.documentElement.lang = lang;
     document.getElementById('docTitle').innerText = t.docTitle;
     document.getElementById('settingsBtn').innerText = t.settingsBtn;
     document.getElementById('txtTitleTextLabel').innerText = t.titleTextLabel;
     document.getElementById('txtTitleColorLabel').innerText = t.titleColorLabel;
     
     const titleInput = document.getElementById('chartTitleInput');
-    if (titleInput.value === "Data Table" || titleInput.value === "數據統計圖表") {
+    if (defaultTitles.includes(titleInput.value)) {
       titleInput.value = t.defaultTitleText;
     }
+
+    document.querySelectorAll('.series-name').forEach(input => {
+      const val = input.value.trim();
+      if (defaultBlueNames.includes(val)) {
+        input.value = t.blueSeriesDefault;
+      } else if (defaultRedNames.includes(val)) {
+        input.value = t.redSeriesDefault;
+      } else {
+        for (const prefix of defaultSeriesPrefixes) {
+          const regex = new RegExp(`^${prefix}\\s+(\\d+)$`);
+          const match = val.match(regex);
+          if (match) {
+            input.value = `${t.seriesDefaultName} ${match[1]}`;
+            break;
+          }
+        }
+      }
+    });
 
     document.getElementById('addRowBtn').innerText = t.addRowBtn;
     document.getElementById('addSeriesBtn').innerText = t.addSeriesBtn;
