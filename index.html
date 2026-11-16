@@ -30,11 +30,76 @@
     html[lang="zh"] h3,
     html[lang="zh"] p,
     html[lang="zh"] small,
-    html[lang="zh"] span {
+    html[lang="zh"] span,
+    html[lang="zh"] li {
       letter-spacing: 0.06em;
     }
 
     .app-layout { max-width: 950px; margin: 0 auto; padding-bottom: 100px; }
+
+    /* Top Tutorial Banner */
+    .tutorial-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    .tutorial-header {
+      width: 100%;
+      background: #dbeafe;
+      border: none;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e3a8a;
+      text-align: left;
+      transition: background-color 0.2s ease;
+    }
+    .tutorial-header:hover {
+      background: #bfdbfe;
+    }
+
+    .tutorial-toggle-badge {
+      font-size: 12px;
+      background: #2563eb;
+      color: #ffffff;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .tutorial-content {
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+    }
+    .tutorial-content.collapsed {
+      display: none;
+    }
+
+    .tut-item {
+      background: #ffffff;
+      border: 1px solid #dbeafe;
+      border-radius: 6px;
+      padding: 9px 12px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #334155;
+    }
+    .tut-item strong {
+      display: block;
+      color: #1e40af;
+      margin-bottom: 2px;
+      font-size: 13.5px;
+    }
 
     .table-section, .chart-card, .calc-lines-box {
       background: #ffffff;
@@ -317,7 +382,7 @@
     .setting-item-btn {
       width: 100%;
       padding: 14px;
-      margin-top: 15px;
+      margin-top: 12px;
       background: #f8fafc;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
@@ -328,10 +393,20 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: background-color 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
     }
     .setting-item-btn:hover {
       background: #e2e8f0;
+    }
+
+    .setting-item-btn.danger-btn {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #dc2626;
+    }
+    .setting-item-btn.danger-btn:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
     }
 
     .lang-option-box {
@@ -387,6 +462,37 @@
       text-decoration: underline;
     }
 
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .confirm-actions button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid #cbd5e1;
+      transition: background-color 0.2s ease;
+    }
+    .confirm-cancel-btn {
+      background: #f8fafc;
+      color: #334155;
+    }
+    .confirm-cancel-btn:hover {
+      background: #e2e8f0;
+    }
+    .confirm-reset-btn {
+      background: #dc2626;
+      color: #ffffff;
+      border-color: #dc2626 !important;
+    }
+    .confirm-reset-btn:hover {
+      background: #b91c1c;
+    }
+
     .exporting .del-y-btn,
     .exporting .chart-top-toolbar {
       display: none !important;
@@ -398,6 +504,15 @@
 <button id="settingsBtn" type="button">⚙ Settings</button>
 
 <div class="app-layout">
+  <!-- Top Tutorial Banner -->
+  <div class="tutorial-box" id="tutorialBox">
+    <button type="button" class="tutorial-header" id="tutorialToggleBtn">
+      <span id="txtTutorialTitle">📖 Quick Guide</span>
+      <span class="tutorial-toggle-badge" id="txtTutorialToggleBadge">Hide ▲</span>
+    </button>
+    <div class="tutorial-content" id="tutorialContent"></div>
+  </div>
+
   <div class="table-section">
     <div class="table-header-controls">
       <div class="title-inline-controls">
@@ -488,6 +603,10 @@
         <span id="txtLanguagesOption">🌐 Languages</span>
         <span style="color: #64748b;">›</span>
       </button>
+      <button id="openResetConfirmBtn" class="setting-item-btn danger-btn" type="button">
+        <span id="txtResetChartOption">🔄 Reset All Chart</span>
+        <span>›</span>
+      </button>
       <div style="margin-top: 25px;">
         <button id="closeSettingsModalBtn" class="close-btn" type="button">Close</button>
       </div>
@@ -517,6 +636,18 @@
         <button id="closeLangModalBtn" class="close-btn" type="button">Close</button>
       </div>
     </div>
+
+    <div id="settingsResetConfirmView" style="display: none;">
+      <button id="backFromResetBtn" class="settings-back-btn" type="button">‹ Back to Settings</button>
+      <h2 id="txtResetConfirmTitle" style="margin-top: 5px; color: #dc2626;">Reset All Chart?</h2>
+      <p id="txtResetConfirmDesc" style="color: #475569; font-size: 14px; line-height: 1.5;">
+        This will restore the table, vertical labels, title, and average lines back to their default values.
+      </p>
+      <div class="confirm-actions">
+        <button id="cancelResetBtn" class="confirm-cancel-btn" type="button">Cancel</button>
+        <button id="confirmResetBtn" class="confirm-reset-btn" type="button">Reset</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -534,10 +665,22 @@
 
 <script>
   let currentLang = 'en';
+  let isTutorialOpen = true;
 
   const i18n = {
     en: {
       docTitle: "Dynamic Line Chart Generator",
+      tutorialTitle: "📖 Quick Guide",
+      tutorialHide: "Hide ▲",
+      tutorialShow: "Show ▼",
+      tutorialItems: [
+        { title: "1. Title & Color", desc: "Appears at the bottom of the chart. Type a title and pick its color." },
+        { title: "2. Rows (Bottom / X-Axis)", desc: "Sets points along the bottom (also known as the X-axis). Click + Add Row or ✕." },
+        { title: "3. Lines (+ Add Line)", desc: "Adds a new colored line across the chart. Edit its name and color in the top header." },
+        { title: "4. Average Lines", desc: "Check boxes to draw dashed horizontal average lines across the chart." },
+        { title: "5. Vertical Scale (Left / Y-Axis)", desc: "Numbers on the left set height levels (also known as the Y-axis / Ys). Click to edit, + Add Vertical, or ✕." },
+        { title: "6. Undo, Settings & Save", desc: "↺ Rewind undoes edits. ⚙ Settings changes language or resets. Finish saves as PNG/PDF." }
+      ],
       settingsBtn: "⚙ Settings",
       titleTextLabel: "Title Text:",
       titleColorLabel: "Title Color:",
@@ -557,6 +700,10 @@
       finishBtn: "Finish",
       settingsTitle: "Settings",
       languagesOption: "🌐 Languages",
+      resetChartOption: "🔄 Reset All Chart",
+      resetConfirmTitle: "Reset All Chart?",
+      resetConfirmDesc: "This will restore the table, vertical labels, title, and average lines back to their default values.",
+      confirmResetBtn: "Reset",
       closeBtn: "Close",
       cancelBtn: "Cancel",
       backToSettings: "‹ Back to Settings",
@@ -574,6 +721,17 @@
     },
     zh: {
       docTitle: "動態折線圖產生器",
+      tutorialTitle: "📖 快速說明",
+      tutorialHide: "收起 ▲",
+      tutorialShow: "展開 ▼",
+      tutorialItems: [
+        { title: "1. 標題與顏色", desc: "顯示在圖表最下方。輸入標題文字並選擇顏色。" },
+        { title: "2. 橫排數據（圖表底部 / X 軸）", desc: "對應圖表下方由左到右的刻度（又稱 X 軸 / 橫軸）。點「+ 增加橫排」或按 ✕ 刪除。" },
+        { title: "3. 數據線條 (+ 增加新線條)", desc: "新增不同顏色的折線，可直接在表頭修改線條名稱與顏色。" },
+        { title: "4. 平均線", desc: "勾選方塊即可在圖表上顯示水平的平均虛線。" },
+        { title: "5. 直排刻度（圖表左側 / Y 軸）", desc: "位於圖表左邊，代表上下高度刻度（又稱 Y 軸 / Y 值）。點擊數字可修改，或按「+ 新增直排」/ ✕。" },
+        { title: "6. 復原、設定與匯出", desc: "「↺ 復原」回上一步；「⚙ 設定」換語言或重設；「完成匯出」存成圖片或 PDF。" }
+      ],
       settingsBtn: "⚙ 設定",
       titleTextLabel: "標題文字：",
       titleColorLabel: "標題顏色：",
@@ -593,6 +751,10 @@
       finishBtn: "完成匯出",
       settingsTitle: "設定",
       languagesOption: "🌐 語言 (Languages)",
+      resetChartOption: "🔄 重設所有圖表",
+      resetConfirmTitle: "確定要重設所有圖表嗎？",
+      resetConfirmDesc: "這將會把表格數據、直排標籤、標題與平均線全部恢復為預設值。",
+      confirmResetBtn: "確定重設",
       closeBtn: "關閉",
       cancelBtn: "取消",
       backToSettings: "‹ 返回設定",
@@ -610,6 +772,17 @@
     },
     es: {
       docTitle: "Generador Dinámico de Gráficos de Líneas",
+      tutorialTitle: "📖 Guía Rápida",
+      tutorialHide: "Ocultar ▲",
+      tutorialShow: "Mostrar ▼",
+      tutorialItems: [
+        { title: "1. Título y Color", desc: "Aparece en la parte inferior del gráfico. Escribe un título y elige su color." },
+        { title: "2. Filas (Abajo / Eje X)", desc: "Marca puntos abajo (también conocido como eje X). Pulsa + Añadir fila o ✕." },
+        { title: "3. Líneas (+ Añadir línea)", desc: "Añade más líneas de colores. Cambia su nombre y color en el encabezado." },
+        { title: "4. Líneas Promedio", desc: "Marca las casillas para trazar líneas horizontales discontinuas de promedio." },
+        { title: "5. Escala Vertical (Izquierda / Eje Y)", desc: "Los números a la izquierda marcan la altura (también conocido como eje Y / valores Y). Haz clic para editar, + Añadir vertical o ✕." },
+        { title: "6. Deshacer, Ajustes y Guardar", desc: "↺ Deshacer revierte cambios. ⚙ Ajustes cambia idioma o reinicia. Finalizar guarda en PNG/PDF." }
+      ],
       settingsBtn: "⚙ Ajustes",
       titleTextLabel: "Texto del título:",
       titleColorLabel: "Color del título:",
@@ -629,6 +802,10 @@
       finishBtn: "Finalizar",
       settingsTitle: "Ajustes",
       languagesOption: "🌐 Idiomas",
+      resetChartOption: "🔄 Restablecer todo el gráfico",
+      resetConfirmTitle: "¿Restablecer todo el gráfico?",
+      resetConfirmDesc: "Esto restaurará la tabla, las etiquetas verticales, el título y las líneas promedio a sus valores predeterminados.",
+      confirmResetBtn: "Restablecer",
       closeBtn: "Cerrar",
       cancelBtn: "Cancelar",
       backToSettings: "‹ Volver a Ajustes",
@@ -646,6 +823,17 @@
     },
     fr: {
       docTitle: "Générateur Dynamique de Graphiques en Courbes",
+      tutorialTitle: "📖 Guide Rapide",
+      tutorialHide: "Masquer ▲",
+      tutorialShow: "Afficher ▼",
+      tutorialItems: [
+        { title: "1. Titre et Couleur", desc: "S'affiche en bas du graphique. Saisissez un titre et choisissez sa couleur." },
+        { title: "2. Lignes (En bas / Axe X)", desc: "Place des points en bas (aussi appelé axe X / abscisses). Cliquez sur + Ajouter une ligne ou ✕." },
+        { title: "3. Courbes (+ Ajouter une courbe)", desc: "Ajoute une nouvelle courbe colorée. Modifiez son nom et sa couleur en haut." },
+        { title: "4. Lignes Moyennes", desc: "Cochez les cases pour afficher des lignes horizontales pointillées de moyenne." },
+        { title: "5. Échelle Verticale (À gauche / Axe Y)", desc: "Les chiffres à gauche définissent la hauteur (aussi appelé axe Y / ordonnées). Cliquez pour modifier, + Ajouter vertical ou ✕." },
+        { title: "6. Annuler, Paramètres et Sauvegarder", desc: "↺ Annuler revient en arrière. ⚙ Paramètres change la langue ou réinitialise. Terminer exporte en PNG/PDF." }
+      ],
       settingsBtn: "⚙ Paramètres",
       titleTextLabel: "Texte du titre :",
       titleColorLabel: "Couleur du titre :",
@@ -665,6 +853,10 @@
       finishBtn: "Terminer",
       settingsTitle: "Paramètres",
       languagesOption: "🌐 Langues",
+      resetChartOption: "🔄 Réinitialiser le graphique",
+      resetConfirmTitle: "Réinitialiser tout le graphique ?",
+      resetConfirmDesc: "Cela restaurera le tableau, les étiquettes verticales, le titre et les lignes moyennes à leurs valeurs par défaut.",
+      confirmResetBtn: "Réinitialiser",
       closeBtn: "Fermer",
       cancelBtn: "Annuler",
       backToSettings: "‹ Retour aux paramètres",
@@ -686,7 +878,7 @@
   const colorPalette = ['#2563eb', '#dc2626', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
   const activeCentralSelections = new Set();
   
-  let yAxisBoxesList = [
+  const defaultYAxisBoxes = [
     { numValue: 100, label: "100" },
     { numValue: 80,  label: "80" },
     { numValue: 60,  label: "60" },
@@ -695,6 +887,8 @@
     { numValue: 0,   label: "0" }
   ];
 
+  let yAxisBoxesList = JSON.parse(JSON.stringify(defaultYAxisBoxes));
+
   const stateHistory = [];
   let isRestoringState = false;
 
@@ -702,6 +896,28 @@
   const defaultBlueNames = Object.values(i18n).map(langObj => langObj.blueSeriesDefault);
   const defaultRedNames = Object.values(i18n).map(langObj => langObj.redSeriesDefault);
   const defaultSeriesPrefixes = Object.values(i18n).map(langObj => langObj.seriesDefaultName);
+
+  function renderTutorial(lang) {
+    const t = i18n[lang];
+    document.getElementById('txtTutorialTitle').innerText = t.tutorialTitle;
+    document.getElementById('txtTutorialToggleBadge').innerText = isTutorialOpen ? t.tutorialHide : t.tutorialShow;
+
+    const container = document.getElementById('tutorialContent');
+    container.innerHTML = t.tutorialItems.map(item => `
+      <div class="tut-item">
+        <strong>${item.title}</strong>
+        <span>${item.desc}</span>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('tutorialToggleBtn').onclick = () => {
+    isTutorialOpen = !isTutorialOpen;
+    const content = document.getElementById('tutorialContent');
+    content.classList.toggle('collapsed', !isTutorialOpen);
+    const t = i18n[currentLang];
+    document.getElementById('txtTutorialToggleBadge').innerText = isTutorialOpen ? t.tutorialHide : t.tutorialShow;
+  };
 
   function applyLanguage(lang) {
     currentLang = lang;
@@ -713,6 +929,8 @@
     document.getElementById('txtTitleTextLabel').innerText = t.titleTextLabel;
     document.getElementById('txtTitleColorLabel').innerText = t.titleColorLabel;
     
+    renderTutorial(lang);
+
     const titleInput = document.getElementById('chartTitleInput');
     if (defaultTitles.includes(titleInput.value)) {
       titleInput.value = t.defaultTitleText;
@@ -748,9 +966,15 @@
 
     document.getElementById('txtSettingsTitle').innerText = t.settingsTitle;
     document.getElementById('txtLanguagesOption').innerText = t.languagesOption;
+    document.getElementById('txtResetChartOption').innerText = t.resetChartOption;
+    document.getElementById('txtResetConfirmTitle').innerText = t.resetConfirmTitle;
+    document.getElementById('txtResetConfirmDesc').innerText = t.resetConfirmDesc;
+    document.getElementById('cancelResetBtn').innerText = t.cancelBtn;
+    document.getElementById('confirmResetBtn').innerText = t.confirmResetBtn;
     document.getElementById('closeSettingsModalBtn').innerText = t.closeBtn;
     document.getElementById('closeLangModalBtn').innerText = t.closeBtn;
     document.getElementById('backToSettingsBtn').innerText = t.backToSettings;
+    document.getElementById('backFromResetBtn').innerText = t.backToSettings;
     document.getElementById('txtSelectLanguageTitle').innerText = t.selectLanguageTitle;
 
     document.getElementById('txtExportOptionsTitle').innerText = t.exportOptionsTitle;
@@ -765,6 +989,57 @@
     });
 
     updateChart();
+  }
+
+  function resetAllChart() {
+    const t = i18n[currentLang];
+
+    document.getElementById('chartTitleInput').value = t.defaultTitleText;
+    document.getElementById('titleColorPicker').value = '#0f172a';
+
+    yAxisBoxesList = JSON.parse(JSON.stringify(defaultYAxisBoxes));
+    activeCentralSelections.clear();
+
+    const headerRow = document.getElementById('tableHeaderRow');
+    document.querySelectorAll('th[data-series]').forEach(th => th.remove());
+    const deleteRowTh = headerRow.children[headerRow.children.length - 1];
+
+    const defaultSeries = [
+      { color: '#2563eb', name: t.blueSeriesDefault },
+      { color: '#dc2626', name: t.redSeriesDefault }
+    ];
+
+    defaultSeries.forEach((s, sIdx) => {
+      const th = document.createElement('th');
+      th.setAttribute('data-series', sIdx);
+      th.innerHTML = `
+        <div class="series-header-content">
+          <input type="color" class="color-picker" value="${s.color}" data-series="${sIdx}">
+          <input type="text" class="series-name" value="${s.name}" data-series="${sIdx}">
+          <button class="del-series-btn" type="button">✕</button>
+        </div>
+      `;
+      headerRow.insertBefore(th, deleteRowTh);
+    });
+
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = `
+      <tr>
+        <td><input type="text" class="x-label" value="Jan"></td>
+        <td><input type="number" class="y-val" data-series="0" value="20"></td>
+        <td><input type="number" class="y-val" data-series="1" value="40"></td>
+        <td><button class="del-btn" type="button">✕</button></td>
+      </tr>
+      <tr>
+        <td><input type="text" class="x-label" value="Feb"></td>
+        <td><input type="number" class="y-val" data-series="0" value="60"></td>
+        <td><input type="number" class="y-val" data-series="1" value="80"></td>
+        <td><button class="del-btn" type="button">✕</button></td>
+      </tr>
+    `;
+
+    updateChart();
+    captureCurrentState();
   }
 
   function captureCurrentState() {
@@ -1177,22 +1452,30 @@
   const settingsModal = document.getElementById('settingsModal');
   const settingsMainView = document.getElementById('settingsMainView');
   const settingsLanguagesView = document.getElementById('settingsLanguagesView');
+  const settingsResetConfirmView = document.getElementById('settingsResetConfirmView');
+
+  function showSettingsView(view) {
+    settingsMainView.style.display = view === 'main' ? 'block' : 'none';
+    settingsLanguagesView.style.display = view === 'languages' ? 'block' : 'none';
+    settingsResetConfirmView.style.display = view === 'reset' ? 'block' : 'none';
+  }
 
   document.getElementById('settingsBtn').onclick = () => {
-    settingsMainView.style.display = 'block';
-    settingsLanguagesView.style.display = 'none';
+    showSettingsView('main');
     settingsModal.style.display = 'flex';
   };
   document.getElementById('closeSettingsModalBtn').onclick = () => settingsModal.style.display = 'none';
   document.getElementById('closeLangModalBtn').onclick = () => settingsModal.style.display = 'none';
 
-  document.getElementById('openLanguagesBtn').onclick = () => {
-    settingsMainView.style.display = 'none';
-    settingsLanguagesView.style.display = 'block';
-  };
-  document.getElementById('backToSettingsBtn').onclick = () => {
-    settingsLanguagesView.style.display = 'none';
-    settingsMainView.style.display = 'block';
+  document.getElementById('openLanguagesBtn').onclick = () => showSettingsView('languages');
+  document.getElementById('backToSettingsBtn').onclick = () => showSettingsView('main');
+
+  document.getElementById('openResetConfirmBtn').onclick = () => showSettingsView('reset');
+  document.getElementById('backFromResetBtn').onclick = () => showSettingsView('main');
+  document.getElementById('cancelResetBtn').onclick = () => showSettingsView('main');
+  document.getElementById('confirmResetBtn').onclick = () => {
+    resetAllChart();
+    settingsModal.style.display = 'none';
   };
 
   document.querySelectorAll('.lang-option-box').forEach(box => {
